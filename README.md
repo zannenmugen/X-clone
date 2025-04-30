@@ -52,6 +52,6 @@ Installation:
    ```
 
 Deployment:
-This project is not hosted right now.
+This project deployed here: https://clone-rtgo.onrender.com
 
 Happy tweeting! 🚀
