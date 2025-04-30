@@ -2,11 +2,14 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy root package files and install all deps (backend + build tools)
+# install back-end deps
 COPY package*.json ./
 RUN npm install
 
-# Copy source and build the frontend
+# bring in your back-end code
+COPY backend/ ./backend
+
+# build the front-end
 COPY frontend/ ./frontend/
 RUN npm install --prefix frontend
 RUN npm run build
@@ -17,12 +20,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=10000
 
-# Copy only the built artifacts and production code
+# pull in production bits
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/backend   ./backend
+COPY --from=builder /app/backend ./backend
 COPY --from=builder /app/frontend/dist ./frontend/dist
 
-# Expose and start
 EXPOSE 10000
 CMD ["npm","start"]
