@@ -1,33 +1,28 @@
-# 1. Build frontend
-FROM node:18-alpine AS frontend-build
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ ./
-RUN npm run build
-
-# 2. Build backend
-FROM node:18-alpine AS backend-build
-WORKDIR /app/backend
-COPY backend/package*.json ./
-RUN npm install
-COPY backend/ ./
-
-# 3. Final image: serve both
-FROM node:18-alpine
+# 1) Builder: install & build both front- and back-end
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy backend code
-COPY --from=backend-build /app/backend ./backend
+# Copy root package files and install all deps (backend + build tools)
+COPY package*.json ./
+RUN npm install
 
-# Copy built frontend into backend’s static folder
-COPY --from=frontend-build /app/frontend/build ./backend/public
+# Copy source and build the frontend
+COPY frontend/ ./frontend/
+RUN npm install --prefix frontend
+RUN npm run build
 
-# If you use Express/static to serve public files, fine.  
-# Otherwise install nginx or a static file server here.
-
-EXPOSE 10000
+# 2) Production image: only what we need at runtime
+FROM node:18-alpine
+WORKDIR /app
+ENV NODE_ENV=production
 ENV PORT=10000
 
-# Start your combined app
-CMD ["node", "backend/index.js"]
+# Copy only the built artifacts and production code
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/backend   ./backend
+COPY --from=builder /app/frontend/dist ./frontend/dist
+
+# Expose and start
+EXPOSE 10000
+CMD ["npm","start"]
