@@ -21,7 +21,7 @@ Backend:
 Installation:
 1. Clone the repo:
    ```bash
-   git clone https://github.com/InfinitelyFinite/x-clone.git
+   git clone https://github.com/zannenmugen/X-clone.git
    cd x-clone
    ```
 2. Install dependencies:
